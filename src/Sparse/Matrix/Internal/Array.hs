@@ -25,7 +25,7 @@ import Data.Monoid
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Generic.Mutable as GM
 import qualified Data.Vector.Unboxed as U
-import qualified Data.Vector.Fusion.Stream as Stream
+import qualified Data.Vector.Fusion.Bundle as Stream
 import qualified Data.Vector as B
 import Data.Word
 import qualified Sparse.Matrix.Internal.Key as Key
@@ -85,6 +85,7 @@ instance (Arrayed a, Arrayed b) => GM.MVector MV_Pair (a, b) where
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
+  {-# INLINE basicInitialize #-}
   basicLength (MV_Pair l _ _) = l
   basicUnsafeSlice i n (MV_Pair _ u v)                   = MV_Pair n (GM.basicUnsafeSlice i n u) (GM.basicUnsafeSlice i n v)
   basicOverlaps (MV_Pair _ u1 v1) (MV_Pair _ u2 v2)      = GM.basicOverlaps u1 u2 || GM.basicOverlaps v1 v2
@@ -97,6 +98,7 @@ instance (Arrayed a, Arrayed b) => GM.MVector MV_Pair (a, b) where
   basicUnsafeCopy (MV_Pair _ u1 v1) (MV_Pair _ u2 v2)    = GM.basicUnsafeCopy u1 u2 >> GM.basicUnsafeCopy v1 v2
   basicUnsafeMove (MV_Pair _ u1 v1) (MV_Pair _ u2 v2)    = GM.basicUnsafeMove u1 u2 >> GM.basicUnsafeMove v1 v2
   basicUnsafeGrow (MV_Pair _ u v) n                      = liftM2 (MV_Pair n) (GM.basicUnsafeGrow u n) (GM.basicUnsafeGrow v n)
+  basicInitialize (MV_Pair _ u v)                        = GM.basicInitialize u >> GM.basicInitialize v
 
 instance (Arrayed a, Arrayed b) => G.Vector V_Pair (a, b) where
   {-# INLINE basicLength #-}
@@ -160,6 +162,7 @@ instance (Arrayed a, RealFloat a) => GM.MVector MV_Complex (Complex a) where
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
+  {-# INLINE basicInitialize #-}
   basicLength (MV_Complex l _ _) = l
   basicUnsafeSlice i n (MV_Complex _ u v)                   = MV_Complex n (GM.basicUnsafeSlice i n u) (GM.basicUnsafeSlice i n v)
   basicOverlaps (MV_Complex _ u1 v1) (MV_Complex _ u2 v2)   = GM.basicOverlaps u1 u2 || GM.basicOverlaps v1 v2
@@ -172,6 +175,7 @@ instance (Arrayed a, RealFloat a) => GM.MVector MV_Complex (Complex a) where
   basicUnsafeCopy (MV_Complex _ u1 v1) (MV_Complex _ u2 v2) = GM.basicUnsafeCopy u1 u2 >> GM.basicUnsafeCopy v1 v2
   basicUnsafeMove (MV_Complex _ u1 v1) (MV_Complex _ u2 v2) = GM.basicUnsafeMove u1 u2 >> GM.basicUnsafeMove v1 v2
   basicUnsafeGrow (MV_Complex _ u v) n                      = liftM2 (MV_Complex n) (GM.basicUnsafeGrow u n) (GM.basicUnsafeGrow v n)
+  basicInitialize (MV_Complex _ u v)                        = GM.basicInitialize u >> GM.basicInitialize v
 
 instance (Arrayed a, RealFloat a) => G.Vector V_Complex (Complex a) where
   {-# INLINE basicLength #-}

@@ -1,14 +1,7 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE CPP, DefaultSignatures, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, KindSignatures           #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeFamilies, TypeSynonymInstances   #-}
+{-# LANGUAGE UndecidableInstances                                        #-}
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (C) 2013 Edward Kmett
@@ -43,12 +36,12 @@ module Sparse.Matrix.Internal.Key
   , U.Vector(V_Key)
   ) where
 
-import Data.Bits
-import Control.Monad
-import Control.Lens
-import qualified Data.Vector.Generic as G
+import           Control.Lens
+import           Control.Monad
+import           Data.Bits
+import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Generic.Mutable as GM
-import qualified Data.Vector.Unboxed as U
+import qualified Data.Vector.Unboxed         as U
 #if __GLASGOW_HASKELL__ < 710
 import Data.Word
 #endif
@@ -96,6 +89,7 @@ instance GM.MVector U.MVector Key where
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
+  {-# INLINE basicInitialize #-}
   basicLength (MV_Key l _ _) = l
   basicUnsafeSlice i n (MV_Key _ u v)               = MV_Key n (GM.basicUnsafeSlice i n u) (GM.basicUnsafeSlice i n v)
   basicOverlaps (MV_Key _ u1 v1) (MV_Key _ u2 v2)   = GM.basicOverlaps u1 u2 || GM.basicOverlaps v1 v2
@@ -108,6 +102,7 @@ instance GM.MVector U.MVector Key where
   basicUnsafeCopy (MV_Key _ u1 v1) (MV_Key _ u2 v2) = GM.basicUnsafeCopy u1 u2 >> GM.basicUnsafeCopy v1 v2
   basicUnsafeMove (MV_Key _ u1 v1) (MV_Key _ u2 v2) = GM.basicUnsafeMove u1 u2 >> GM.basicUnsafeMove v1 v2
   basicUnsafeGrow (MV_Key _ u v) n                  = liftM2 (MV_Key n) (GM.basicUnsafeGrow u n) (GM.basicUnsafeGrow v n)
+  basicInitialize (MV_Key _ u v)                    = GM.basicInitialize u >> GM.basicInitialize v
 
 instance G.Vector U.Vector Key where
   {-# INLINE basicLength #-}

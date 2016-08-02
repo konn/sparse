@@ -33,7 +33,6 @@ import Control.Lens
 import Data.Foldable
 import Data.Monoid
 import Data.Vector.Fusion.Stream.Monadic hiding (singleton, fromList, head, tail)
-import Data.Vector.Fusion.Stream.Size
 import Sparse.Matrix.Internal.Key
 import Prelude hiding (head, tail)
 
@@ -152,7 +151,7 @@ data HeapState a
 -- | Convert a 'Heap' into a 'Stream' folding together values with identical keys using the supplied
 -- addition operator.
 streamHeapWith :: Monad m => (a -> a -> a) -> Maybe (Heap a) -> Stream m (Key, a)
-streamHeapWith f h0 = Stream step (maybe Finished Start h0) Unknown where
+streamHeapWith f h0 = Stream step (maybe Finished Start h0) where
   step (Start (Heap i a xs ls rs))     = return $ Skip $ maybe (Final i a) (Ready i a) $ pop xs ls rs
   step (Ready i a (Heap j b xs ls rs)) = return $ case compare i j of
     LT -> Yield (i, a)      $ maybe (Final j b) (Ready j b) $ pop xs ls rs
@@ -166,7 +165,7 @@ streamHeapWith f h0 = Stream step (maybe Finished Start h0) Unknown where
 -- | Convert a 'Heap' into a 'Stream' folding together values with identical keys using the supplied
 -- addition operator that is allowed to return a sparse 0, by returning 'Nothing'.
 streamHeapWith0 :: Monad m => (a -> a -> Maybe a) -> Maybe (Heap a) -> Stream m (Key, a)
-streamHeapWith0 f h0 = Stream step (maybe Finished Start h0) Unknown where
+streamHeapWith0 f h0 = Stream step (maybe Finished Start h0) where
   step (Start (Heap i a xs ls rs))     = return $ Skip $ maybe (Final i a) (Ready i a) $ pop xs ls rs
   step (Ready i a (Heap j b xs ls rs)) = return $ case compare i j of
     LT -> Yield (i, a) $ maybe (Final j b) (Ready j b) $ pop xs ls rs

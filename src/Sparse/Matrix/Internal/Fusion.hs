@@ -15,7 +15,8 @@ module Sparse.Matrix.Internal.Fusion
   ) where
 
 import Data.Vector.Fusion.Stream.Monadic (Step(..), Stream(..))
-import Data.Vector.Fusion.Stream.Size
+import Data.Vector.Fusion.Bundle.Monadic (Bundle, fromStream, elements, size)
+import Data.Vector.Fusion.Bundle.Size (toMax)
 import Sparse.Matrix.Internal.Key
 
 -- | The state for 'Stream' fusion that is used by 'mergeStreamsWith'.
@@ -31,9 +32,10 @@ data MergeState sa sb i a
 -- | This is the internal stream fusion combinator used to merge streams for addition.
 --
 -- This form permits cancellative addition.
-mergeStreamsWith0 :: Monad m => (a -> a -> Maybe a) -> Stream m (Key, a) -> Stream m (Key, a) -> Stream m (Key, a)
-mergeStreamsWith0 f (Stream stepa sa0 na) (Stream stepb sb0 nb)
-  = Stream step (MergeStart sa0 sb0) (toMax na + toMax nb) where
+mergeStreamsWith0 :: Monad m => (a -> a -> Maybe a) -> Bundle m v (Key, a) -> Bundle m v (Key, a) -> Bundle m v (Key, a)
+mergeStreamsWith0 f ba bb 
+ = case (elements ba, elements bb) of
+ (Stream stepa sa0, Stream stepb sb0) -> fromStream (Stream step (MergeStart sa0 sb0)) (toMax (size ba) + toMax (size bb)) where
   step (MergeStart sa sb) = do
     r <- stepa sa
     return $ case r of
@@ -79,9 +81,10 @@ mergeStreamsWith0 f (Stream stepa sa0 na) (Stream stepb sb0 nb)
 
 
 -- | This is the internal stream fusion combinator used to merge streams for addition.
-mergeStreamsWith :: Monad m => (a -> a -> a) -> Stream m (Key, a) -> Stream m (Key, a) -> Stream m (Key, a)
-mergeStreamsWith f (Stream stepa sa0 na) (Stream stepb sb0 nb)
-  = Stream step (MergeStart sa0 sb0) (toMax na + toMax nb) where
+mergeStreamsWith :: Monad m => (a -> a -> a) -> Bundle m v (Key, a) -> Bundle m v (Key, a) -> Bundle m v (Key, a)
+mergeStreamsWith f ba bb = case (elements ba, elements ba) of
+ (Stream stepa sa0, Stream stepb sb0) ->
+  fromStream (Stream step (MergeStart sa0 sb0)) (toMax (size ba) + toMax (size bb)) where
   step (MergeStart sa sb) = do
     r <- stepa sa
     return $ case r of

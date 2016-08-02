@@ -67,7 +67,8 @@ import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Hybrid as H
 import qualified Data.Vector.Hybrid.Internal as H
 import qualified Data.Vector.Unboxed as U
-import Data.Vector.Fusion.Stream (Stream)
+import qualified Data.Vector.Fusion.Stream.Monadic as S
+import Data.Vector.Fusion.Util (Id)
 import Data.Word
 import Prelude hiding (head, last, null)
 import Sparse.Matrix.Internal.Fusion as Fusion
@@ -75,9 +76,13 @@ import Sparse.Matrix.Internal.Key
 import Sparse.Matrix.Internal.Array as I
 import Sparse.Matrix.Internal.Heap as Heap hiding (head)
 import Text.Read
+import Data.Vector.Fusion.Bundle.Size (Size(Unknown))
+import Data.Vector.Fusion.Bundle.Monadic (fromStream)
 
 -- import Debug.Trace
 -- import Numeric.Lens
+
+type Stream = S.Stream Id
 
 -- * Distinguishable Zero
 
@@ -343,7 +348,7 @@ multiplyWith times make x0 y0 = case compare (size x0) 1 of
       GT -> unhinted $ go22 (lo x0) x0 (hi x0) (lo y0) y0 (hi y0)
   where
     -- hinted x = _Mat # G.unstream (sized (make x) (Max (size x0 * size y0)))
-    unhinted x = _Mat # G.unstream (make x)
+    unhinted x = _Mat # G.unstream (fromStream (make x) Unknown)
 
     go11 (Key i j) a (Key j' k) b
        | j == j' = Just $ Heap.singleton (Key i k) (times a b)
